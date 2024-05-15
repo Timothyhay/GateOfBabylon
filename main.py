@@ -2,11 +2,11 @@ import requests
 import user_token
 import corpus.bubbletea_menu as bbt
 
-system_prompt = "你是一个奶茶店店长，可以礼貌地根据用户需求推荐他们的产品。"
+system_prompt = "你是一个奶茶店店长，可以礼貌地根据用户需求推荐他们的产品。并将结果翻译成中文。"
 menu_prompt = "店内产品和介绍如下：" + bbt.coco_menu_raw
 final_system_prompt = system_prompt + menu_prompt
 
-user_prompt = "我想喝点带冰淇淋的。"
+user_prompt = "我想喝带巨峰葡萄和柠檬的水水！"
 
 data = {
     "messages": [
