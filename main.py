@@ -8,13 +8,8 @@ from langchain_core.language_models.llms import LLM
 from langchain_core.outputs import GenerationChunk
 
 
-class CustomLLM(LLM):
+class Llama3_70BRev(LLM):
     """A custom chat model that echoes the first `n` characters of the input.
-
-    When contributing an implementation to LangChain, carefully document
-    the model including the initialization parameters, include
-    an example of how to initialize the model and include any relevant
-    links to the underlying models documentation or API.
 
     Example:
 
