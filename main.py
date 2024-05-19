@@ -23,6 +23,10 @@ class Llama3_70BRev(LLM):
 
     n: int
     """The number of characters from the last message of the prompt to be echoed."""
+    max_tokens: int
+    temperature: float
+    top_p: float
+
 
     def _call(
         self,
@@ -98,7 +102,7 @@ class Llama3_70BRev(LLM):
     @property
     def _llm_type(self) -> str:
         """Get the type of language model used by this chat model. Used for logging purposes only."""
-        return "custom"
+        return "meta-llama/Meta-Llama-3-70B-Instruct"
 
 
 system_prompt = "你是一个奶茶店店长，可以礼貌地根据用户需求推荐他们的产品。并将结果翻译成中文。"
