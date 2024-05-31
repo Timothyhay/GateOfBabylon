@@ -92,11 +92,7 @@ class Llama3_70BRev(LLM):
     def _identifying_params(self) -> Dict[str, Any]:
         """Return a dictionary of identifying parameters."""
         return {
-            # The model name allows users to specify custom token counting
-            # rules in LLM monitoring applications (e.g., in LangSmith users
-            # can provide per token pricing for their model and monitor
-            # costs for the given LLM.)
-            "model_name": "CustomChatModel",
+            "model_name": "meta-llama/Meta-Llama-3-70B-Instruct",
         }
 
     @property
