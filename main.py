@@ -93,6 +93,7 @@ class Llama3_70BRev(LLM):
         """Return a dictionary of identifying parameters."""
         return {
             "model_name": "meta-llama/Meta-Llama-3-70B-Instruct",
+            "method": "API"
         }
 
     @property
