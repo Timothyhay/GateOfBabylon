@@ -88,7 +88,7 @@ coco_menu_json = {
             "name": "铁观音奶盖",
             "description": "微微的茶味，搭配红豆和布丁。"
         },
-{
+        {
             "name": "酒酿桂圆红枣茶",
             "description": "特别温暖治愈，适合特殊时期饮用。"
         }

@@ -64,7 +64,12 @@ class AtomChat(LLM):
             "stream": False
         }
 
-        response = requests.post(url="https://api.atomecho.cn/v1/chat/completions", headers=header, data=body, timeout=30, verify=False)
+        response = requests.post(url="https://api.atomecho.cn/v1/chat/completions",
+                                 headers=header,
+                                 data=body,
+                                 timeout=30,
+                                 verify=False)
+        result = response.json()
 
         if stop is not None:
             raise ValueError("stop kwargs are not permitted.")
