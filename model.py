@@ -71,9 +71,9 @@ class AtomChat(LLM):
                                  verify=False)
         result = response.json()
 
-        if stop is not None:
-            raise ValueError("stop kwargs are not permitted.")
-        return response
+        # if stop is not None:
+        #     raise ValueError("stop kwargs are not permitted.")
+        return result
 
     def _stream(
         self,
