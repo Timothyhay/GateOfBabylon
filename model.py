@@ -21,10 +21,7 @@ class AtomChat(LLM):
     """
     selected_model: str
     api_key: str
-    n: int
-    max_tokens: int
     temperature: float
-
 
     def _call(
         self,
@@ -55,12 +52,12 @@ class AtomChat(LLM):
         }
 
         body = {
-            "model": self.selected_model if self.selected_model else "Atom-13B-Chat",
+            "model": self.selected_model,
             "messages": [{
                 "role": "user",
                 "content": prompt
             }],
-            "temperature": self.temperature if self.temperature else 0.3,
+            "temperature": self.temperature,
             "stream": False
         }
 
@@ -112,7 +109,7 @@ class AtomChat(LLM):
     def _identifying_params(self) -> Dict[str, Any]:
         """Return a dictionary of identifying parameters."""
         return {
-            "default_model": "Atom-13B-Chat",
+            "default_model": "Atom-7B-Chat",
             "method": "API",
             "optional_model": ["Atom-13B-Chat", "Atom-7B-Chat", "Atom-1B-Chat", "Llama3-Chinese-8B-Instruct"]
         }

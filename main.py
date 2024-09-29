@@ -26,9 +26,12 @@ data = {
     "top_p": 0.9
 }
 
-atom_llm = AtomChat(selected_model="Atom-13B-Chat")
-answer = atom_llm.invoke("Try it")
+atom_llm = AtomChat(api_key=user_token.LLAMA_FAMILY_TOKEN,
+                    selected_model="Atom-7B-Chat",
+                    temperature=0.3)
+answer = atom_llm("Try it")
 
+print(answer)
 # response = requests.post(user_token.url, headers=user_token.headers, json=data)
 # answer_json = response.json()
 # print(answer_json)
