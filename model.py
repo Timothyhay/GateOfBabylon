@@ -1,10 +1,12 @@
-
+from openai import OpenAI
 from typing import Any, Dict, Iterator, List, Mapping, Optional
 
 import requests
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.language_models.llms import LLM
 from langchain_core.outputs import GenerationChunk
+
+import user_token
 
 
 class AtomChat(LLM):
@@ -119,3 +121,17 @@ class AtomChat(LLM):
         """Get the type of language model used by this chat model. Used for logging purposes only."""
         return "meta-llama/Meta-Llama-3-70B-Instruct"
 
+
+client = OpenAI(
+    api_key=user_token.LLAMA_FAMILY_TOKEN,
+    base_url="https://api.atomecho.cn/v1",
+)
+# Sample Completion
+# completion = client.chat.completions.create(
+#   model="Atom-7B-Chat",
+#   messages=[
+#     {"role": "user", "content": "请介绍一下Llama社区"}
+#   ],
+#   temperature=0.3,
+# )
+# print(completion.choices[0].message)
