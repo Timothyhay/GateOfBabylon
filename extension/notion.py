@@ -14,6 +14,19 @@ notion = Client(auth=api_key)
 # https://www.notion.so/timothyhay/298dfef81f834bfaa335e65e7c1c7249?v=cba1cfb5a5c44ffd954d88ec5edbfcb8&pvs=4
 def read_database(database_id):
     try:
+        sort_index = {
+            "sorts": [
+                {
+                    "property": "Week",
+                    "direction": "ascending"
+                },
+                {
+                    "property": "Created time",
+                    "direction": "ascending"
+                }
+            ]
+        }
+
         results = notion.databases.query(database_id=database_id)
         # 遍历数据库中的每一行（页面）
         for page in results["results"]:
@@ -31,7 +44,7 @@ def read_database(database_id):
                     value = prop_value["select"]["name"] if prop_value["select"] else ""
                 else:
                     value = "Unsupported type"
-                print(f"{prop_name}: {value}")
+                print(f"{prop_name}: {prop_value}")
             print("-" * 50)
     except Exception as e:
         print(f"Error: {e}")
