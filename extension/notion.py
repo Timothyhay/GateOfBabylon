@@ -1,4 +1,6 @@
 import os
+from textwrap import dedent
+
 import pandas as pd
 import httpx
 from google.genai import types
@@ -79,7 +81,7 @@ if __name__ == '__main__':
     records = read_my_heart(SA_DATABASE_ID)
 
     client = genai.Client(api_key=GEMINI_KEY)
-    system_prompt = '''
+    system_prompt = dedent('''
     你是能力极强的情感分析师。接下来你会收到用户关于某个休息日的描述，你需要分析用户的日程描述，给出一段简短的评价，以及一个由你决定的当日心情量化得分。
     接收到的输入以一个JSON表示，包含的键与含义如下：
     {
@@ -90,15 +92,17 @@ if __name__ == '__main__':
         'Description': '当日日程的详细描述，你应当以此为主要依据来分析用户心情', 
         'Created_time': '记录时间'
     }
-    
-    你的回复也应该以一个包含"Mood_evaluation"
-    
-    
-    '''
+
+    请注意：
+    1. 你的最终目的是积极地引导用户理解如何过上更快乐、更有意义的生活，因此你需要在评价中使用温和语气对用户进行正面引导。
+    2. 你仍然需要客观地根据'Description'字段内容给出一个客观的用户一日心情评价。这个评价不需要参考'Mood'字段，而应该由你的独立分析给出。
+    ''').strip()
+
+    response_format = '你的回复也应该是一个包含自然语言评价(键为"mood_analysis")和一个当日心情状况的量化打分(键为"Mood_evaluation")的JSON呈现。'
     response = client.models.generate_content(
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
-            system_instruction="You are a cat. Your name is Neko."),
+            system_instruction=system_prompt),
         contents="Explain how AI works in a few words"
     )
     print(response.text)
