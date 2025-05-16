@@ -23,6 +23,35 @@ data_list = [
     },
     # ... 更多数据
 ]
+# Convert to DataFrame
+df = pd.DataFrame(data_list)
+
+# Data cleaning and preprocessing
+df['Created_time'] = pd.to_datetime(df['Created_time'])
+df['Date'] = df['Created_time'].dt.date
+df['Hour'] = df['Created_time'].dt.hour
+
+# Set style to a valid option
+plt.style.use('ggplot')  # Replaced 'seaborn' with 'ggplot'
+
+# Visualizations
+# Weekly Outside Hours Bar Plot
+plt.figure(figsize=(10, 6))
+df.groupby('Week')['OutsideHour'].sum().plot(kind='bar')
+plt.title('Weekly Outside Hours')
+plt.xlabel('Week')
+plt.ylabel('Total Outside Hours')
+plt.tight_layout()
+plt.show()
+
+# Mood vs Outside Hours Scatter Plot
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=df, x='OutsideHour', y='Mood', hue='Week', size='Week')
+plt.title('Mood vs Outside Hours')
+plt.xlabel('Outside Hours')
+plt.ylabel('Mood Score')
+plt.tight_layout()
+plt.show()
 
 # 1. 转换为 DataFrame
 df = pd.DataFrame(data_list)
