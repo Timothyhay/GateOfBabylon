@@ -6,7 +6,7 @@ from textwrap import dedent
 import pandas as pd
 import httpx
 from google.genai import types
-from google.genai.errors import ClientError
+from google.genai.errors import ClientError, ServerError
 from notion_client import Client
 from config.secret import NOTION_KEY, SA_DATABASE_ID
 from config.setup import setup_proxy
@@ -128,6 +128,10 @@ if __name__ == '__main__':
                 time.sleep(60)
             else:
                 break
+        except ServerError as e:
+            print(f"Error: {e}")
+            time.sleep(5)
+
     combined_data = []
     for data_row, mood_score_row in zip(records, response_list):
         mood_score_row_dict = json.loads(mood_score_row)
@@ -136,5 +140,5 @@ if __name__ == '__main__':
 
     # 转换为 DataFrame
     combined_data_df = pd.DataFrame(combined_data)
-    records_df.to_csv("../data/notion_combined_data.csv")
+    combined_data_df.to_csv("../data/notion_combined_data.csv")
     pass
