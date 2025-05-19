@@ -21,7 +21,8 @@ print(combined_data_df[['Mood', 'OutsideHour']].describe())
 
 
 # 设置全局字体和风格
-plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.family'] = 'DengXian'
+# plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'SimHei', 'Microsoft YaHei', 'DejaVu Sans']  # Arial 优先用于英文，SimHei 用于中文
 plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 plt.rcParams['axes.grid'] = True
