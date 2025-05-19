@@ -271,9 +271,36 @@ OutsideHour likely influences mood (e.g., more outdoor time may improve mood), a
 Description keywords (e.g., “下雨,” “工作”) capture situational factors. We can analyze how Mood and score vary with positive (e.g., “晴,” “散步”) vs. negative (e.g., “雨,” “压力”) keywords.
 '''
 
+# 自动化扩展关键词
+stopwords = ['今天', '感觉', '还是', '没有', '这种', '一下', '很', '有点', '一个']
+# 提取高频词
+word_freq = Counter([word for desc in combined_data_df['Description'] for word in jieba.cut(desc) if len(word) > 1 and word not in stopwords])
+top_words = [word for word, count in word_freq.most_common(50) if count >= 2]
+# 计算每个词的情感得分
+word_sentiments = {}
+for word in top_words:
+    word_records = combined_data_df[combined_data_df['Description'].str.contains(word, na=False)]
+    if len(word_records) > 0:
+        avg_sentiment = word_records['Sentiment'].mean()
+        word_sentiments[word] = avg_sentiment
+# 分配正负关键词
+positive_keywords = [word for word, score in word_sentiments.items() if score >= 0.9]
+negative_keywords = [word for word, score in word_sentiments.items() if score <= 0.4]
+# 确保关键词列表不为空，添加手动关键词作为后备
+if len(positive_keywords) < 5:
+    positive_keywords.extend(['散步', '朋友', '休息', '摸鱼', '开心', '快乐'])
+if len(negative_keywords) < 5:
+    negative_keywords.extend(['压力', '疲惫', '工作', '难受', '难过', '伤心'])
+# 去重
+positive_keywords = list(set(positive_keywords))
+negative_keywords = list(set(negative_keywords))
+print("\nAutomated Positive Keywords:", positive_keywords)
+print("Automated Negative Keywords:", negative_keywords)
+
+
 # 图15：Mood 和 Score 按关键词情感分类
-positive_keywords = ['散步', '朋友', '休息', '摸鱼', '开心', '快乐']
-negative_keywords = ['压力', '疲惫', '工作', '难受', '难过', '伤心']
+# positive_keywords = ['散步', '朋友', '休息', '摸鱼', '开心', '快乐']
+# negative_keywords = ['压力', '疲惫', '工作', '难受', '难过', '伤心']
 combined_data_df['Sentiment_Category'] = combined_data_df['Description'].apply(
     lambda x: 'positive' if any(kw in x for kw in positive_keywords) else ('negative' if any(kw in x for kw in negative_keywords) else 'neutral'))
 plt.figure(figsize=(10, 6))
