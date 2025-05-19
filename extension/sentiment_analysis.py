@@ -1,11 +1,12 @@
 from collections import Counter
 
 import jieba
+import numpy as np
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy.stats import spearmanr
+from scipy.stats import spearmanr, ttest_ind
 from snownlp import SnowNLP
 from wordcloud import WordCloud
 from matplotlib.font_manager import FontProperties
@@ -28,11 +29,6 @@ plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 plt.rcParams['axes.grid'] = True
 plt.rcParams['grid.color'] = '#E5E7EB'  # 淡灰色网格线
 plt.rcParams['grid.alpha'] = 0.5
-
-# 定义中文字体
-chinese_font = FontProperties(family='SimHei')
-# 定义英文字体
-english_font = FontProperties(family='Arial')
 
 
 # 定义马卡龙色系
@@ -115,7 +111,7 @@ plt.show()
 # 图4：相关系数热图（Pearson 和 Spearman）
 plt.figure(figsize=(8, 6))
 # 计算 Pearson 相关系数
-pearson_corr = combined_data_df[['Week', 'Mood', 'OutsideHour']].corr(method='pearson')
+pearson_corr = combined_data_df[['Week', 'Mood', 'Score', 'OutsideHour']].corr(method='pearson')
 # 创建自定义马卡龙色系渐变
 colors = sns.color_palette([MOOD_COLOR, '#F9FAFB', OUTSIDEHOUR_COLOR])
 cmap = sns.blend_palette(colors, as_cmap=True)
@@ -155,7 +151,7 @@ plt.figure(figsize=(10, 6))
 sns.barplot(x=list(counts), y=list(words), color=MOOD_COLOR)
 plt.title('Top 10 Keywords in Description')
 plt.xlabel('Frequency')
-plt.ylabel('Keyword', fontproperties=chinese_font)
+plt.ylabel('Keyword')
 plt.tight_layout()
 plt.show()
 
@@ -201,10 +197,13 @@ plt.title('Mood by Activity Keywords')
 plt.tight_layout()
 plt.show()
 
-# 图11：score vs. Mood 散点图
+# 图11：Score vs. Mood 散点图
 plt.figure(figsize=(8, 6))
-sns.scatterplot(x='score', y='Mood', data=combined_data_df, color=SCORE_COLOR)
+sns.regplot(x='Score', y='Mood', data=combined_data_df, color=SCORE_COLOR, line_kws={'color': MEAN_COLOR, 'label': 'Regression'})
 plt.plot([0, 5], [0, 5], color=MEAN_COLOR, linestyle='--', label='Perfect Agreement')
+# 计算回归方程
+slope, intercept = np.polyfit(combined_data_df['Score'], combined_data_df['Mood'], 1)
+plt.text(0.5, 4.5, f'y = {slope:.2f}x + {intercept:.2f}', color=MEAN_COLOR)
 plt.title('Score vs. Mood')
 plt.xlabel('Score (0–5)')
 plt.ylabel('Mood (0–5)')
@@ -212,12 +211,13 @@ plt.legend(frameon=True, facecolor='#F9FAFB')
 plt.tight_layout()
 plt.show()
 
+
 # 图12：Bland-Altman 散点图
-combined_data_df['Score_Mood_Diff'] = combined_data_df['score'] - combined_data_df['Mood']
+combined_data_df['Score_Mood_Diff'] = combined_data_df['Score'] - combined_data_df['Mood']
 mean_diff = combined_data_df['Score_Mood_Diff'].mean()
 std_diff = combined_data_df['Score_Mood_Diff'].std()
 plt.figure(figsize=(8, 6))
-sns.scatterplot(x=(combined_data_df['score'] + combined_data_df['Mood'])/2, y=combined_data_df['Score_Mood_Diff'], color=SCORE_COLOR)
+sns.scatterplot(x=(combined_data_df['Score'] + combined_data_df['Mood'])/2, y=combined_data_df['Score_Mood_Diff'], color=SCORE_COLOR)
 plt.axhline(mean_diff, color=MEAN_COLOR, linestyle='--', label=f'Mean Diff: {mean_diff:.2f}')
 plt.axhline(mean_diff + 1.96*std_diff, color=MEAN_COLOR, linestyle=':', label='±1.96 SD')
 plt.axhline(mean_diff - 1.96*std_diff, color=MEAN_COLOR, linestyle=':')
@@ -236,32 +236,94 @@ plt.title('Mood Distribution')
 plt.axvline(mood_mean, color=MEAN_COLOR, linestyle='--', label=f'Mean: {mood_mean:.2f}')
 plt.legend(frameon=True, facecolor='#F9FAFB')
 plt.subplot(1, 2, 2)
-sns.histplot(combined_data_df['score'], kde=True, color=SCORE_COLOR)
+sns.histplot(combined_data_df['Score'], kde=True, color=SCORE_COLOR)
 plt.title('Score Distribution')
-score_mean = combined_data_df['score'].mean()
+score_mean = combined_data_df['Score'].mean()
 plt.axvline(score_mean, color=MEAN_COLOR, linestyle='--', label=f'Mean: {score_mean:.2f}')
 plt.legend(frameon=True, facecolor='#F9FAFB')
 plt.tight_layout()
 plt.show()
 
-# 图14：Score 和 Mood 随 Week 趋势
+# 图14：Score 和 Mood 随 Record 趋势
 fig, ax1 = plt.subplots(figsize=(10, 6))
-ax1.plot(combined_data_df['Week'], combined_data_df['Mood'], label='Mood', marker='o', color=MOOD_COLOR)
-ax1.set_xlabel('Week')
+ax1.plot(combined_data_df['Record'], combined_data_df['Mood'], label='Mood', marker='o', color=MOOD_COLOR)
+ax1.set_xlabel('Record')
 ax1.set_ylabel('Mood', color=MOOD_COLOR)
 ax1.tick_params(axis='y', labelcolor=MOOD_COLOR)
 ax1.set_ylim(0, 5)
 ax2 = ax1.twinx()
-ax2.plot(combined_data_df['Week'], combined_data_df['score'], label='Score', marker='x', color=SCORE_COLOR)
+ax2.plot(combined_data_df['Record'], combined_data_df['Score'], label='Score', marker='x', color=SCORE_COLOR)
 ax2.set_ylabel('Score', color=SCORE_COLOR)
 ax2.tick_params(axis='y', labelcolor=SCORE_COLOR)
 ax2.set_ylim(0, 5)
 lines1, labels1 = ax1.get_legend_handles_labels()
 lines2, labels2 = ax2.get_legend_handles_labels()
 ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left', frameon=True, facecolor='#F9FAFB')
-plt.title('Mood and Score Over Weeks')
+plt.title('Mood and Score Over Records')
 plt.tight_layout()
 plt.show()
+
+'''
+Challenge: There’s no ground-truth mood value in the dataset (Week, Mood, OutsideHour, Description, score). Mood is a subjective self-reported score (0–5), and score is an algorithm-derived sentiment score (0–5) from Description.
+Proposed Method: Use OutsideHour and Description keywords as proxies for contextual factors influencing mood, and compare how well Mood and score correlate with these factors. The variable with stronger, more consistent relationships to context is likely a better mood indicator.
+Rationale:
+OutsideHour likely influences mood (e.g., more outdoor time may improve mood), as shown by prior correlations (Pearson: 0.587, Spearman: 0.446 for Mood vs. OutsideHour).
+Description keywords (e.g., “下雨,” “工作”) capture situational factors. We can analyze how Mood and score vary with positive (e.g., “晴,” “散步”) vs. negative (e.g., “雨,” “压力”) keywords.
+'''
+
+# 图15：Mood 和 Score 按关键词情感分类
+positive_keywords = ['散步', '朋友', '休息', '摸鱼', '开心', '快乐']
+negative_keywords = ['压力', '疲惫', '工作', '难受', '难过', '伤心']
+combined_data_df['Sentiment_Category'] = combined_data_df['Description'].apply(
+    lambda x: 'positive' if any(kw in x for kw in positive_keywords) else ('negative' if any(kw in x for kw in negative_keywords) else 'neutral'))
+plt.figure(figsize=(10, 6))
+melted_df = pd.melt(combined_data_df, id_vars=['Sentiment_Category'], value_vars=['Mood', 'Score'],
+                    var_name='Metric', value_name='Value')
+sns.boxplot(x='Sentiment_Category', y='Value', hue='Metric', data=melted_df,
+            palette={'Mood': MOOD_COLOR, 'Score': SCORE_COLOR})
+plt.title('Sentiment Group by Keywords')
+plt.xlabel('Sentiment')
+plt.ylabel('Value (0–5)')
+plt.legend(frameon=True, facecolor='#F9FAFB')
+plt.tight_layout()
+plt.show()
+
+# 比较 Mood 和 Score 谁更能反映心情
+print("\n=== Mood vs. Score: Which Better Reflects Mood? ===")
+# 相关性分析
+mood_outside_pearson = combined_data_df['Mood'].corr(combined_data_df['OutsideHour'], method='pearson')
+score_outside_pearson = combined_data_df['Score'].corr(combined_data_df['OutsideHour'], method='pearson')
+mood_outside_spearman, _ = spearmanr(combined_data_df['Mood'], combined_data_df['OutsideHour'])
+score_outside_spearman, _ = spearmanr(combined_data_df['Score'], combined_data_df['OutsideHour'])
+print("Correlation with OutsideHour:")
+print(f"Mood - Pearson: {mood_outside_pearson:.3f}, Spearman: {mood_outside_spearman:.3f}")
+print(f"Score - Pearson: {score_outside_pearson:.3f}, Spearman: {score_outside_spearman:.3f}")
+
+# t-test 比较正负关键词
+positive_mood = combined_data_df[combined_data_df['Sentiment_Category'] == 'positive']['Mood']
+positive_score = combined_data_df[combined_data_df['Sentiment_Category'] == 'positive']['Score']
+negative_mood = combined_data_df[combined_data_df['Sentiment_Category'] == 'negative']['Mood']
+negative_score = combined_data_df[combined_data_df['Sentiment_Category'] == 'negative']['Score']
+mood_ttest = ttest_ind(positive_mood, negative_mood, equal_var=False)
+score_ttest = ttest_ind(positive_score, negative_score, equal_var=False)
+print("\nT-test (Positive vs. Negative Keywords):")
+print(f"Mood - t-statistic: {mood_ttest.statistic:.3f}, p-value: {mood_ttest.pvalue:.3f}")
+print(f"Score - t-statistic: {score_ttest.statistic:.3f}, p-value: {score_ttest.pvalue:.3f}")
+
+# 总结
+print("\nSummary:")
+if abs(mood_outside_pearson) > abs(score_outside_pearson) and abs(mood_outside_spearman) > abs(score_outside_spearman):
+    print("Mood 可能更能反映心情，因其与户外时间有更强的相关性。")
+elif abs(score_outside_pearson) > abs(mood_outside_pearson) and abs(score_outside_spearman) > abs(mood_outside_spearman):
+    print("Score 可能更能反映心情，因其与户外时间有更强的相关性。")
+else:
+    print("Mood 和 Score 与户外时间的相关性相似，需进一步分析。")
+if mood_ttest.pvalue < score_ttest.pvalue:
+    print("Mood 在正负关键词间差异更显著，可能更敏感地反映心情变化。")
+elif score_ttest.pvalue < mood_ttest.pvalue:
+    print("Score 在正负关键词间差异更显著，可能更敏感地反映心情变化。")
+else:
+    print("Mood 和 Score 在正负关键词间差异相似，需结合其他因素判断。")
 
 # 打印相关系数
 print("Correlation with Score (Pearson):")
@@ -270,8 +332,8 @@ print("\nCorrelation with Score (Spearman):")
 print(spearman_df)
 
 # Discrepancy Analysis
-combined_data_df['Discrepancy'] = abs(combined_data_df['score'] - combined_data_df['Mood'])
-discrepant_records = combined_data_df[combined_data_df['Discrepancy'] > 1][['Week', 'Mood', 'score', 'Description']]
+combined_data_df['Discrepancy'] = abs(combined_data_df['Score'] - combined_data_df['Mood'])
+discrepant_records = combined_data_df[combined_data_df['Discrepancy'] > 1][['Week', 'Mood', 'Score', 'Description']]
 print("\nRecords with |Score - Mood| > 1:")
 print(discrepant_records)
 
