@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy.stats import spearmanr, ttest_ind
+from scipy.stats import spearmanr, ttest_ind, pearsonr
 from snownlp import SnowNLP
 from wordcloud import WordCloud
 from matplotlib.font_manager import FontProperties
@@ -110,30 +110,56 @@ plt.show()
 
 # 图4：相关系数热图（Pearson 和 Spearman）
 plt.figure(figsize=(8, 6))
-# 计算 Pearson 相关系数
-pearson_corr = combined_data_df[['Week', 'Mood', 'Score', 'OutsideHour']].corr(method='pearson')
-# 创建自定义马卡龙色系渐变
+pearson_corr = combined_data_df[['Week', 'Mood', 'OutsideHour', 'Score']].corr(method='pearson')
+# 计算 p 值
+p_values = pd.DataFrame(index=pearson_corr.index, columns=pearson_corr.columns)
+for col1 in pearson_corr.columns:
+    for col2 in pearson_corr.columns:
+        if col1 != col2:
+            r, p = pearsonr(combined_data_df[col1], combined_data_df[col2])
+            p_values.loc[col1, col2] = p
+        else:
+            p_values.loc[col1, col2] = np.nan
+# 显著性标注
+annot = pearson_corr.round(2).astype(str)
+for i, col1 in enumerate(pearson_corr.index):
+    for j, col2 in enumerate(pearson_corr.columns):
+        if i != j:
+            p = p_values.loc[col1, col2]
+            if p < 0.01:
+                annot.iloc[i, j] += '**'
+            elif p < 0.05:
+                annot.iloc[i, j] += '*'
 colors = sns.color_palette([MOOD_COLOR, '#F9FAFB', OUTSIDEHOUR_COLOR])
 cmap = sns.blend_palette(colors, as_cmap=True)
-sns.heatmap(pearson_corr, annot=True, cmap=cmap, vmin=-1, vmax=1, center=0,
+sns.heatmap(pearson_corr, annot=annot, fmt='', cmap=cmap, vmin=-1, vmax=1, center=0,
             square=True, cbar_kws={'label': 'Pearson Correlation'})
-plt.title('Pearson Correlation Matrix')
+plt.title('Pearson Correlation Matrix (* p<0.05, ** p<0.01)')
 plt.tight_layout()
 plt.show()
-print('Pearson Correlation Matrix')
-print(pearson_corr)
 
-# 打印 Spearman 相关系数（供参考）
+# 图5：Spearman 相关系数热图
 plt.figure(figsize=(8, 6))
-spearman_corr, _ = spearmanr(combined_data_df[['Week', 'Mood', 'OutsideHour']])
+spearman_corr, spearman_p = spearmanr(combined_data_df[['Week', 'Mood', 'OutsideHour', 'Score']])
 spearman_df = pd.DataFrame(
     spearman_corr,
-    columns=['Week', 'Mood', 'OutsideHour'],
-    index=['Week', 'Mood', 'OutsideHour']
+    columns=['Week', 'Mood', 'OutsideHour', 'Score'],
+    index=['Week', 'Mood', 'OutsideHour', 'Score']
 )
-sns.heatmap(spearman_df, annot=True, cmap=cmap, vmin=-1, vmax=1, center=0,
+# 显著性标注
+spearman_p_df = pd.DataFrame(spearman_p, columns=spearman_df.columns, index=spearman_df.index)
+spearman_annot = spearman_df.round(2).astype(str)
+for i, col1 in enumerate(spearman_df.index):
+    for j, col2 in enumerate(spearman_df.columns):
+        if i != j:
+            p = spearman_p_df.iloc[i, j]
+            if p < 0.01:
+                spearman_annot.iloc[i, j] += '**'
+            elif p < 0.05:
+                spearman_annot.iloc[i, j] += '*'
+sns.heatmap(spearman_df, annot=spearman_annot, fmt='', cmap=cmap, vmin=-1, vmax=1, center=0,
             square=True, cbar_kws={'label': 'Spearman Correlation'})
-plt.title('Spearman Correlation Matrix')
+plt.title('Spearman Correlation Matrix (* p<0.05, ** p<0.01)')
 plt.tight_layout()
 plt.show()
 
